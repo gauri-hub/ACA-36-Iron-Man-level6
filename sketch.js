@@ -10,7 +10,6 @@ function preload() {
   platformImage = loadImage("images/stone.png");
   diamondImage = loadImage("images/diamond.png");
   spikeImage = loadImage("images/spikes.png");
-  restartImage = loadImage("images/restart.png");
   }
 
 function setup() {
@@ -29,15 +28,11 @@ function setup() {
   platformGroup = new Group();
   diamondsGroup = new Group();
   spikesGroup = new Group();
-
-  restart = createSprite(500,300);
-  restart.addImage(restartImage);
-  restart.visible= false;
 }
 
 function draw() {
 
-
+if(gameState ==="PLAY"){
 
   ironMan.setCollider("rectangle",0,0,200,500);
     //mario.scale =0.3;
@@ -66,9 +61,59 @@ function draw() {
     }
   }
 
+  generateDiamonds();
+
+  for(var i = 0 ; i< (diamondsGroup).length ;i++){
+    var temp = (diamondsGroup).get(i) ;
+    
+    if (temp.isTouching(ironMan)) {
+      score++;
+      temp.destroy();
+      temp=null;
+      }
+
+        
+    }
+
+    generateSpikes();
+
+    for(var i = 0 ; i< (spikesGroup).length ;i++){
+      var temp = (spikesGroup).get(i) ;
+      
+      if (temp.isTouching(ironMan)) {
+        score=score-5;
+        temp.destroy();
+        temp=null;
+        }
+          
+      }
+      if(score<=-10 || ironMan.y>610){
+       gameState ="END";
+      }
+      
+}
+if(gameState ==="END"){
+  bg.velocityY=0;
+  ironMan.velocityY=0;
+  diamondsGroup.setVelocityYEach(0);
+  spikesGroup.setVelocityYEach(0);
+  platformGroup.setVelocityYEach(0);
+  diamondsGroup.setLifetimeEach(-1);
+  spikesGroup.setLifetimeEach(-1);
+  platformGroup.setLifetimeEach(-1);
+  
+  restart.visible=true;
+  if(mousePressedOver(restart)){
+   restartGame();
+
+  }
+}
   ironMan.collide(ground);
     drawSprites();
-  
+    textSize(20);
+    fill("white")
+    text("Diamonds Collected: "+ score, 500,50);
+   
 }
 function generatePlatforms() {
   if (frameCount % 60 === 0) {
@@ -79,4 +124,42 @@ function generatePlatforms() {
     brick.lifetime = 250;
     platformGroup.add(brick);
   }
+}
+
+
+function generateDiamonds() {
+  if (frameCount % 80 === 0) {
+    var diamond = createSprite(1200, 0, 40, 10);
+
+    diamond.addAnimation("diamond", diamondImage);
+    diamond.x = random(50, 850);
+    diamond.scale = 0.5;
+    diamond.velocityY = 3;
+    diamond.lifetime = 400;
+    diamondsGroup.add(diamond);
+  }
+}
+
+
+function generateSpikes() {
+  if (frameCount % 150 === 0) {
+    var spikes = createSprite(1200, 90, 10, 40);
+    spikes.addAnimation("spike", spikeImage);
+    spikes.x = random(50, 850);
+    spikes.scale = 0.5;
+    spikes.velocityY = 3;
+    spikes.lifetime = 600;
+    spikesGroup.add(spikes);
+  }
+}
+
+function restartGame(){
+  gameState ="PLAY";
+  platformGroup.destroyEach();
+  diamondsGroup.destroyEach();
+  spikesGroup.destroyEach();
+  score=0;
+  
+  ironMan.y=50;
+  restart.visible=false;
 }
